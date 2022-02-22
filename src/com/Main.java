@@ -3,7 +3,6 @@ package com;
 import com.commands.*;
 import com.util.*;
 
-import java.time.LocalDateTime;
 import java.util.Scanner;
 
 
@@ -11,14 +10,13 @@ public class Main {
     public static final String INPUT_COMMAND = "$ ";
     public static final String INPUT_INFO = "> ";
 
-    public static void setFileName(String fileName) {
-        Main.fileName = fileName;
-    }
-
-    private static String fileName = null;
 
     public static void main(String[] args) {
+
         try (Scanner userScanner = new Scanner(System.in)) {
+            //if (args == null) throw new ArrayIndexOutOfBoundsException();
+            //String fileName = args[0];
+            String fileName = "Lab5";
             ScannerManager scannerManager = new ScannerManager(userScanner);
             FileManager fileManager = new FileManager(fileName);
             CollectionManager collectionManager = new CollectionManager(fileManager);
@@ -42,6 +40,9 @@ public class Main {
             );
             ConsoleManager console = new ConsoleManager(commandManager, userScanner, scannerManager);
             console.interactiveMode();
+        } catch(ArrayIndexOutOfBoundsException e){
+            ConsoleManager.printErr("Вы не ввели имя или абсолютный путь файла для записи и чтения коллекции!");
+            System.exit(0);
         }
     }
 }

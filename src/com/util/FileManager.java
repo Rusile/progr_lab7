@@ -29,7 +29,7 @@ public class FileManager {
         try {
             if (fileName != null) {
                 File file = new File(fileName);
-                if (!file.canRead() && !file.canWrite())
+                if (!file.canRead() || !file.canWrite())
                     throw new IOException();
                 String result = converter.toJson(personCollection);
                 OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8);
@@ -53,7 +53,7 @@ public class FileManager {
         try {
             if (fileName != null) {
                 File file = new File(fileName);
-                if (!file.canRead() && !file.canWrite())
+                if (!file.canRead())
                     throw new IOException();
                 InputStreamReader reader = new InputStreamReader(new FileInputStream(fileName), StandardCharsets.UTF_8);
                 StringBuilder jsonHolder = new StringBuilder();

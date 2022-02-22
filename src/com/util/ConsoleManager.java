@@ -33,7 +33,6 @@ public class ConsoleManager {
         String[] userCommand = {"", ""};
         int commandStatus;
         try {
-            Main.setFileName(scannerManager.askFileName());
             do {
                 System.out.println(Main.INPUT_COMMAND);
                 userCommand = (userScanner.nextLine().trim() + " ").split(" ", 2);

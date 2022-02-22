@@ -2,10 +2,8 @@ package com.util;
 
 import com.Main;
 import com.exception.*;
-import com.google.gson.internal.bind.util.ISO8601Utils;
 import com.people.*;
 
-import java.io.File;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
 import java.util.regex.Pattern;
@@ -73,6 +71,7 @@ public class ScannerManager {
         String name;
         while (true) {
             try {
+
                 System.out.println(inputTitle);
                 System.out.print(Main.INPUT_INFO);
                 name = userScanner.nextLine().trim();
@@ -86,6 +85,7 @@ public class ScannerManager {
                 ConsoleManager.printErr(String.format("%s не может быть числом!", typeOfName));
             } catch (NoSuchElementException exception) {
                 ConsoleManager.printErr(String.format("%s не распознано!", typeOfName));
+                System.exit(0);
                 if (fileMode) throw new IncorrectInputInScriptException();
             } catch (NotNullException exception) {
                 ConsoleManager.printErr(String.format("%s не может быть пустым!", typeOfName));
@@ -134,6 +134,7 @@ public class ScannerManager {
                 break;
             } catch (NoSuchElementException exception) {
                 ConsoleManager.printErr("Координата X не распознана!");
+                System.exit(0);
                 if (fileMode) throw new IncorrectInputInScriptException();
             } catch (NotInBoundsException exception) {
                 ConsoleManager.printErr("Координата X должна быть в диапазоне (" + 0
@@ -173,6 +174,7 @@ public class ScannerManager {
                 break;
             } catch (NoSuchElementException exception) {
                 ConsoleManager.printErr("Координата Y не распознана!");
+                System.exit(0);
                 if (fileMode) throw new IncorrectInputInScriptException();
             } catch (NumberFormatException exception) {
                 if (patternNumber.matcher(strY).matches()) //why
@@ -221,6 +223,7 @@ public class ScannerManager {
                 break;
             } catch (NoSuchElementException exception) {
                 ConsoleManager.printErr("Число не распознано!");
+                System.exit(0);
                 if (fileMode) throw new IncorrectInputInScriptException();
             } catch (NumberFormatException exception) {
                 if (patternNumber.matcher(strHeight).matches())
@@ -258,6 +261,7 @@ public class ScannerManager {
                 break;
             } catch (NoSuchElementException exception) {
                 ConsoleManager.printErr("Цвет глаз не распознан!");
+                System.exit(0);
                 if (fileMode) throw new IncorrectInputInScriptException();
             } catch (IllegalArgumentException exception) {
                 ConsoleManager.printErr("Данного цвета глаз нет в списке!");
@@ -290,6 +294,7 @@ public class ScannerManager {
                 break;
             } catch (NoSuchElementException exception) {
                 ConsoleManager.printErr("Цвет волос не распознан!");
+                System.exit(0);
                 if (fileMode) throw new IncorrectInputInScriptException();
             } catch (IllegalArgumentException exception) {
                 ConsoleManager.printErr("Данного цвета волос нет в списке!");
@@ -322,6 +327,7 @@ public class ScannerManager {
                 break;
             } catch (NoSuchElementException exception) {
                 ConsoleManager.printErr("Национальность не распознана!");
+                System.exit(0);
                 if (fileMode) throw new IncorrectInputInScriptException();
             } catch (IllegalArgumentException exception) {
                 ConsoleManager.printErr("Данной национальности нет в списке!");
@@ -341,7 +347,7 @@ public class ScannerManager {
      * @return value of coordinate
      * @throws IncorrectInputInScriptException If script is running and something goes wrong.
      */
-    public double askCoordinateOfLoсation(String coordinateAxis) throws IncorrectInputInScriptException {
+    public double askCoordinateOfLocation(String coordinateAxis) throws IncorrectInputInScriptException {
         String strCoordinate = "";
         double coordinate;
         while (true) {
@@ -354,6 +360,7 @@ public class ScannerManager {
                 break;
             } catch (NoSuchElementException exception) {
                 ConsoleManager.printErr(String.format("Координата %s не распознана!", coordinateAxis));
+                System.exit(0);
                 if (fileMode) throw new IncorrectInputInScriptException();
             } catch (NumberFormatException exception) {
                 if (patternNumber.matcher(strCoordinate).matches())
@@ -377,9 +384,9 @@ public class ScannerManager {
      * @throws IncorrectInputInScriptException if script is running and something goes wrong.
      */
     public Location askPersonLocation() throws IncorrectInputInScriptException {
-        double x = askCoordinateOfLoсation("X");
-        double y = askCoordinateOfLoсation("Y");
-        int z = (int) askCoordinateOfLoсation("Z");
+        double x = askCoordinateOfLocation("X");
+        double y = askCoordinateOfLocation("Y");
+        int z = (int) askCoordinateOfLocation("Z");
         String name = askName("Введите название локации:", 0, Integer.MAX_VALUE, "Название локации");
         return new Location(x, y, z, name);
     }
@@ -404,6 +411,7 @@ public class ScannerManager {
                 break;
             } catch (NoSuchElementException exception) {
                 ConsoleManager.printErr("Ответ не распознан!");
+                System.exit(0);
                 if (fileMode) throw new IncorrectInputInScriptException();
             } catch (NotInBoundsException exception) {
                 ConsoleManager.printErr("Ответ должен быть представлен знаками '+' или '-'!");
@@ -416,32 +424,7 @@ public class ScannerManager {
         return answer.equals("+");
     }
 
-    /**
-     * Asks user name or absolute path of file to read and save a collection
-     * @return name or absolute path of file
-     */
-    public String askFileName() {
-        String fileName;
-        while (true) {
-            try {
-                System.out.println("Введите файла для записи и чтения коллекции:");
-                System.out.print(Main.INPUT_INFO);
-                fileName = userScanner.nextLine().trim();
-                if (fileName.equals("")) throw new NoSuchElementException();
-                File file = new File(fileName);
-                if(!file.exists()) throw new IllegalArgumentException();
-                break;
-            } catch (NoSuchElementException exception) {
-                ConsoleManager.printErr("Имя файла не распознан!");
-            } catch (IllegalStateException exception) {
-                ConsoleManager.printErr("Непредвиденная ошибка!");
-                System.exit(0);
-            } catch (IllegalArgumentException exception){
-                ConsoleManager.printErr("Файла с таким именем не существует!");
-            }
-        }
-        return fileName;
-    }
+
 }
 
 
