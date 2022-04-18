@@ -19,11 +19,13 @@ public class ConsoleManager {
     private final Scanner userScanner;
     private final ScannerManager scannerManager;
     private final List<String> scriptStack = new ArrayList<>();
+    private final CollectionManager collectionManager;
 
-    public ConsoleManager(CommandManager commandManager, Scanner userScanner, ScannerManager scannerManager) {
+    public ConsoleManager(CommandManager commandManager, Scanner userScanner, ScannerManager scannerManager, CollectionManager collectionManager) {
         this.commandManager = commandManager;
         this.userScanner = userScanner;
         this.scannerManager = scannerManager;
+        this.collectionManager = collectionManager;
     }
 
     /**
@@ -40,7 +42,8 @@ public class ConsoleManager {
                 commandStatus = launchCommand(userCommand);
             } while (commandStatus != 2);
         } catch (NoSuchElementException exception) {
-            ConsoleManager.printErr("Пользовательский ввод не обнаружен!");
+            collectionManager.saveCollection();
+            ConsoleManager.printErr("Пользовательский ввод не обнаружен! Данные автоматически сохранены.");
         } catch (IllegalStateException exception) {
             ConsoleManager.printErr("Непредвиденная ошибка!");
         }

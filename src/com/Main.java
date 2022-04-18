@@ -38,7 +38,7 @@ public class Main {
                     new FilterLessThanHairColorCommand(collectionManager, scannerManager),
                     new PrintDescendingCommand(collectionManager)
             );
-            ConsoleManager console = new ConsoleManager(commandManager, userScanner, scannerManager);
+            ConsoleManager console = new ConsoleManager(commandManager, userScanner, scannerManager, collectionManager);
             console.interactiveMode();
         } catch(ArrayIndexOutOfBoundsException e){
             ConsoleManager.printErr("Вы не ввели имя или абсолютный путь файла для записи и чтения коллекции!");

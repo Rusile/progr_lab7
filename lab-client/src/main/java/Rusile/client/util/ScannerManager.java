@@ -1,9 +1,13 @@
-package com.util;
+package Rusile.client.util;
 
-import com.Main;
-import com.exception.*;
-import com.people.*;
+import Rusile.common.exception.IncorrectInputInScriptException;
+import Rusile.common.exception.NotInBoundsException;
+import Rusile.common.exception.NotNullException;
+import Rusile.common.exception.WrongNameException;
+import Rusile.common.people.*;
+import Rusile.common.util.TextWriter;
 
+import java.time.LocalDateTime;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
 import java.util.regex.Pattern;
@@ -13,11 +17,13 @@ import java.util.regex.Pattern;
  */
 
 public class ScannerManager {
+    public static final String INPUT_INFO = "> ";
+    public static final String INPUT_COMMAND = "$ ";
     private final int MAX_X = 416;
     private final int MIN_HEIGHT = 0;
     private final int MAX_HEIGHT = 300;
-    private final Pattern PATTERN_NUMBER = Pattern.compile("-?\\d+(\\.\\d+)?");
-    private final Pattern PATTERN_SYMBOLS = Pattern.compile("^[A-Z][a-z]*(\\\\s(([a-z]{1,3})|(([a-z]+\\\\')?[A-Z][a-z]*)))*$");
+    private final Pattern patternNumber = Pattern.compile("-?\\d+(\\.\\d+)?");
+    private final Pattern patternSymbols = Pattern.compile("^[A-Z][a-z]*(\\\\s(([a-z]{1,3})|(([a-z]+\\\\')?[A-Z][a-z]*)))*$");
 
     private Scanner userScanner;
     private boolean fileMode;
@@ -57,6 +63,19 @@ public class ScannerManager {
         fileMode = false;
     }
 
+    public Person askPerson() throws IncorrectInputInScriptException {
+        return new Person(
+                null,
+                askPersonName(),
+                askCoordinates(),
+                LocalDateTime.now(),
+                askPersonHeight(),
+                askPersonEyeColor(),
+                askPersonHairColor(),
+                askPersonNationality(),
+                askPersonLocation()
+        );
+    }
     /**
      * Asks a user the studyGroup's name.
      *
@@ -73,28 +92,28 @@ public class ScannerManager {
             try {
 
                 System.out.println(inputTitle);
-                System.out.print(Main.INPUT_INFO);
+                System.out.print(INPUT_INFO);
                 name = userScanner.nextLine().trim();
                 if (fileMode) System.out.println(name);
                 if (name.equals("")) throw new NotNullException();
                 if (name.length() <= minLength) throw new NotInBoundsException();
                 if (name.length() >= maxLength) throw new NotInBoundsException();
-                if (!PATTERN_SYMBOLS.matcher(name).matches()) throw new WrongNameException();
+                if (!patternSymbols.matcher(name).matches()) throw new WrongNameException();
                 break;
             } catch (WrongNameException exception) {
-                ConsoleManager.printErr(String.format("%s должно начинаться с заглавной буквы и представлено в символьном формате!", typeOfName));
+                TextWriter.printErr(String.format("%s must be presented in character format with a capital letter!", typeOfName));
             } catch (NoSuchElementException exception) {
-                ConsoleManager.printErr(String.format("%s не распознано!", typeOfName));
+                TextWriter.printErr(String.format("%s not recognized!", typeOfName));
                 System.exit(0);
                 if (fileMode) throw new IncorrectInputInScriptException();
             } catch (NotNullException exception) {
-                ConsoleManager.printErr(String.format("%s не может быть пустым!", typeOfName));
+                TextWriter.printErr(String.format("%s can't be empty!", typeOfName));
                 if (fileMode) throw new IncorrectInputInScriptException();
             } catch (IllegalStateException exception) {
-                ConsoleManager.printErr("Непредвиденная ошибка!");
+                TextWriter.printErr("Unexpected error!");
                 System.exit(0);
             } catch (NotInBoundsException e) {
-                ConsoleManager.printErr(String.format("Длина строки не входит в диапазон (%d; %d)", minLength, maxLength));
+                TextWriter.printErr(String.format("The length of the string is not included in the range (%d; %d)", minLength, maxLength));
             }
         }
         return name;
@@ -107,7 +126,7 @@ public class ScannerManager {
      * @throws IncorrectInputInScriptException if script is running and something goes wrong.
      */
     public String askPersonName() throws IncorrectInputInScriptException {
-        return askName("Введите имя персоны:", 0, Integer.MAX_VALUE, "Имя человека");
+        return askName("Enter the person's name:", 0, Integer.MAX_VALUE, "Person's name");
     }
 
     /**
@@ -123,32 +142,32 @@ public class ScannerManager {
         while (true) {
             try {
                 if (withLimit)
-                    System.out.println("Введите координату X < " + MAX_X + ":");
+                    System.out.println("Enter the coordinate X < " + MAX_X + ":");
                 else
-                    System.out.println("Введите координату X:");
-                System.out.print(Main.INPUT_INFO);
+                    System.out.println("Enter the X coordinate:");
+                System.out.print(INPUT_INFO);
                 strX = userScanner.nextLine().trim();
                 if (fileMode) System.out.println(strX);
                 x = Long.parseLong(strX);
                 if (withLimit && x >= MAX_X) throw new NotInBoundsException();
                 break;
             } catch (NoSuchElementException exception) {
-                ConsoleManager.printErr("Координата X не распознана!");
+                TextWriter.printErr("The X coordinate is not recognized!");
                 System.exit(0);
                 if (fileMode) throw new IncorrectInputInScriptException();
             } catch (NotInBoundsException exception) {
-                ConsoleManager.printErr("Координата X должна быть в диапазоне (" + 0
+                TextWriter.printErr("The X coordinate must be in the range (" + 0
                         + ";" + (withLimit ? MAX_X : Long.MAX_VALUE) + ")!");
                 if (fileMode) throw new IncorrectInputInScriptException();
             } catch (NumberFormatException exception) {
-                if (PATTERN_NUMBER.matcher(strX).matches())
-                    ConsoleManager.printErr("Координата X должна быть в диапазоне (" + Long.MAX_VALUE
+                if (patternNumber.matcher(strX).matches())
+                    TextWriter.printErr("The X coordinate must be in the range (" + Long.MAX_VALUE
                             + ";" + (withLimit ? MAX_X : Long.MAX_VALUE) + ")!");
                 else
-                    ConsoleManager.printErr("Координата X должна быть представлена числом!");
+                    TextWriter.printErr("The X coordinate must be represented by a number!");
                 if (fileMode) throw new IncorrectInputInScriptException();
             } catch (NullPointerException | IllegalStateException exception) {
-                ConsoleManager.printErr("Непредвиденная ошибка!");
+                TextWriter.printErr("Unexpected error!");
                 System.exit(0);
             }
         }
@@ -166,25 +185,25 @@ public class ScannerManager {
         float y;
         while (true) {
             try {
-                System.out.println("Введите координату Y:");
-                System.out.print(Main.INPUT_INFO);
+                System.out.println("Enter the Y coordinate:");
+                System.out.print(INPUT_INFO);
                 strY = userScanner.nextLine().trim();
                 if (fileMode) System.out.println(strY);
                 y = Float.parseFloat(strY);
                 break;
             } catch (NoSuchElementException exception) {
-                ConsoleManager.printErr("Координата Y не распознана!");
+                TextWriter.printErr("The Y coordinate is not recognized!");
                 System.exit(0);
                 if (fileMode) throw new IncorrectInputInScriptException();
             } catch (NumberFormatException exception) {
-                if (PATTERN_NUMBER.matcher(strY).matches()) //why
-                    ConsoleManager.printErr("Координата Y должна быть в диапазоне (" + Float.MIN_VALUE
+                if (patternNumber.matcher(strY).matches()) //why
+                    TextWriter.printErr("The Y coordinate must be in the range (" + Float.MIN_VALUE
                             + ";" + Float.MAX_VALUE + ")!");
                 else
-                    ConsoleManager.printErr("Координата Y должна быть представлена числом!");
+                    TextWriter.printErr("The Y coordinate must be represented by a number!");
                 if (fileMode) throw new IncorrectInputInScriptException();
             } catch (NullPointerException | IllegalStateException exception) {
-                ConsoleManager.printErr("Непредвиденная ошибка!");
+                TextWriter.printErr("Unexpected error!");
                 System.exit(0);
             }
         }
@@ -214,28 +233,28 @@ public class ScannerManager {
         int height;
         while (true) {
             try {
-                System.out.println("Введите рост персоны:");
-                System.out.print(Main.INPUT_INFO);
+                System.out.println("Enter the person's height:");
+                System.out.print(INPUT_INFO);
                 strHeight = userScanner.nextLine().trim();
                 if (fileMode) System.out.println(strHeight);
                 height = Integer.parseInt(strHeight);
                 if (height <= MIN_HEIGHT || height >= MAX_HEIGHT) throw new NotInBoundsException();
                 break;
             } catch (NoSuchElementException exception) {
-                ConsoleManager.printErr("Число не распознано!");
+                TextWriter.printErr("The number is not recognized!");
                 System.exit(0);
                 if (fileMode) throw new IncorrectInputInScriptException();
             } catch (NumberFormatException exception) {
-                if (PATTERN_NUMBER.matcher(strHeight).matches())
-                    ConsoleManager.printErr("Число должно быть в диапазоне (" + MIN_HEIGHT + ";" + MAX_HEIGHT + ")!");
+                if (patternNumber.matcher(strHeight).matches())
+                    TextWriter.printErr("The number must be in the range (" + MIN_HEIGHT + ";" + MAX_HEIGHT + ")!");
                 else
-                    ConsoleManager.printErr("Рост должен быть представлен числом!");
+                    TextWriter.printErr("Height should be represented by a number!");
                 if (fileMode) throw new IncorrectInputInScriptException();
             } catch (NullPointerException | IllegalStateException exception) {
-                ConsoleManager.printErr("Непредвиденная ошибка!");
+                TextWriter.printErr("Unexpected error!");
                 System.exit(0);
             } catch (NotInBoundsException e) {
-                ConsoleManager.printErr("Число должно быть в диапазоне (" + MIN_HEIGHT + ";" + MAX_HEIGHT + ")!");
+                TextWriter.printErr("Число должно быть в диапазоне (" + MIN_HEIGHT + ";" + MAX_HEIGHT + ")!");
             }
         }
         return height;
@@ -252,22 +271,22 @@ public class ScannerManager {
         Color color;
         while (true) {
             try {
-                System.out.println("Список цветов - " + Color.nameList());
-                System.out.println("Введите цвет глаз:");
-                System.out.print(Main.INPUT_INFO);
+                System.out.println("List of colors - " + Color.nameList());
+                System.out.println("Enter the eye color:");
+                System.out.print(INPUT_INFO);
                 strEyeColor = userScanner.nextLine().trim();
                 if (fileMode) System.out.println(strEyeColor);
                 color = Color.valueOf(strEyeColor.toUpperCase());
                 break;
             } catch (NoSuchElementException exception) {
-                ConsoleManager.printErr("Цвет глаз не распознан!");
+                TextWriter.printErr("Eye color not recognized!");
                 System.exit(0);
                 if (fileMode) throw new IncorrectInputInScriptException();
             } catch (IllegalArgumentException exception) {
-                ConsoleManager.printErr("Данного цвета глаз нет в списке!");
+                TextWriter.printErr("This eye color is not in the list!");
                 if (fileMode) throw new IncorrectInputInScriptException();
             } catch (IllegalStateException exception) {
-                ConsoleManager.printErr("Непредвиденная ошибка!");
+                TextWriter.printErr("Unexpected error!");
                 System.exit(0);
             }
         }
@@ -285,22 +304,22 @@ public class ScannerManager {
         Color color;
         while (true) {
             try {
-                System.out.println("Список цветов - " + Color.nameList());
-                System.out.println("Введите цвет волос:");
-                System.out.print(Main.INPUT_INFO);
+                System.out.println("List of colors -" + Color.nameList());
+                System.out.println("Enter your hair color:");
+                System.out.print(INPUT_INFO);
                 strHairColor = userScanner.nextLine().trim();
                 if (fileMode) System.out.println(strHairColor);
                 color = Color.valueOf(strHairColor.toUpperCase());
                 break;
             } catch (NoSuchElementException exception) {
-                ConsoleManager.printErr("Цвет волос не распознан!");
+                TextWriter.printErr("Hair color is not recognized!");
                 System.exit(0);
                 if (fileMode) throw new IncorrectInputInScriptException();
             } catch (IllegalArgumentException exception) {
-                ConsoleManager.printErr("Данного цвета волос нет в списке!");
+                TextWriter.printErr("This hair color is not on the list!");
                 if (fileMode) throw new IncorrectInputInScriptException();
             } catch (IllegalStateException exception) {
-                ConsoleManager.printErr("Непредвиденная ошибка!");
+                TextWriter.printErr("Unexpected error!");
                 System.exit(0);
             }
         }
@@ -318,22 +337,22 @@ public class ScannerManager {
         Country nationality;
         while (true) {
             try {
-                System.out.println("Список национальностей - " + Country.nameList());
-                System.out.println("Введите национальность человека:");
-                System.out.print(Main.INPUT_INFO);
+                System.out.println("List of nationalities - " + Country.nameList());
+                System.out.println("Enter the nationality of the person:");
+                System.out.print(INPUT_INFO);
                 strNationality = userScanner.nextLine().trim();
                 if (fileMode) System.out.println(strNationality);
                 nationality = Country.valueOf(strNationality.toUpperCase());
                 break;
             } catch (NoSuchElementException exception) {
-                ConsoleManager.printErr("Национальность не распознана!");
+                TextWriter.printErr("Nationality not recognized!");
                 System.exit(0);
                 if (fileMode) throw new IncorrectInputInScriptException();
             } catch (IllegalArgumentException exception) {
-                ConsoleManager.printErr("Данной национальности нет в списке!");
+                TextWriter.printErr("This nationality is not on the list!");
                 if (fileMode) throw new IncorrectInputInScriptException();
             } catch (IllegalStateException exception) {
-                ConsoleManager.printErr("Непредвиденная ошибка!");
+                TextWriter.printErr("Unexpected error!");
                 System.exit(0);
             }
         }
@@ -352,25 +371,25 @@ public class ScannerManager {
         double coordinate;
         while (true) {
             try {
-                System.out.printf("Введите координату локации %s:%n", coordinateAxis);
-                System.out.print(Main.INPUT_INFO);
+                System.out.printf("Enter the location coordinate %s:%n", coordinateAxis);
+                System.out.print(INPUT_INFO);
                 strCoordinate = userScanner.nextLine().trim();
                 if (fileMode) System.out.println(strCoordinate);
                 coordinate = Double.parseDouble(strCoordinate);
                 break;
             } catch (NoSuchElementException exception) {
-                ConsoleManager.printErr(String.format("Координата %s не распознана!", coordinateAxis));
+                TextWriter.printErr(String.format("The coordinate %s not recognized!", coordinateAxis));
                 System.exit(0);
                 if (fileMode) throw new IncorrectInputInScriptException();
             } catch (NumberFormatException exception) {
-                if (PATTERN_NUMBER.matcher(strCoordinate).matches())
-                    ConsoleManager.printErr("Координата должна быть в диапазоне (" + Double.MIN_VALUE
+                if (patternNumber.matcher(strCoordinate).matches())
+                    TextWriter.printErr("The coordinate must be in the range (" + Double.MIN_VALUE
                             + ";" + Double.MAX_VALUE + ")!");
                 else
-                    ConsoleManager.printErr("Координата должна быть представлена числом!");
+                    TextWriter.printErr("The coordinate must be represented by a number!");
                 if (fileMode) throw new IncorrectInputInScriptException();
             } catch (NullPointerException | IllegalStateException exception) {
-                ConsoleManager.printErr("Непредвиденная ошибка!");
+                TextWriter.printErr("Unexpected error!");
                 System.exit(0);
             }
         }
@@ -387,7 +406,7 @@ public class ScannerManager {
         double x = askCoordinateOfLocation("X");
         double y = askCoordinateOfLocation("Y");
         int z = (int) askCoordinateOfLocation("Z");
-        String name = askName("Введите название локации:", 0, Integer.MAX_VALUE, "Название локации");
+        String name = askName("Enter the name of the location:", 0, Integer.MAX_VALUE, "Location's name");
         return new Location(x, y, z, name);
     }
 
@@ -404,20 +423,20 @@ public class ScannerManager {
         while (true) {
             try {
                 System.out.println(finalQuestion);
-                System.out.print(Main.INPUT_INFO);
+                System.out.print(INPUT_INFO);
                 answer = userScanner.nextLine().trim();
                 if (fileMode) System.out.println(answer);
                 if (!answer.equals("+") && !answer.equals("-")) throw new NotInBoundsException();
                 break;
             } catch (NoSuchElementException exception) {
-                ConsoleManager.printErr("Ответ не распознан!");
+                TextWriter.printErr("Response doesn't recognized");
                 System.exit(0);
                 if (fileMode) throw new IncorrectInputInScriptException();
             } catch (NotInBoundsException exception) {
-                ConsoleManager.printErr("Ответ должен быть представлен знаками '+' или '-'!");
+                TextWriter.printErr("Request must be presented like '+' or '-'!");
                 if (fileMode) throw new IncorrectInputInScriptException();
             } catch (IllegalStateException exception) {
-                ConsoleManager.printErr("Непредвиденная ошибка!");
+                TextWriter.printErr("Unexpected error!");
                 System.exit(0);
             }
         }

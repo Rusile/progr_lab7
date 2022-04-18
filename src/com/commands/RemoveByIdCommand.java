@@ -33,7 +33,7 @@ public class RemoveByIdCommand extends Command {
             Person person = collectionManager.getById(id);
             if (person == null) throw new PersonNotFoundException();
             collectionManager.removeById(person);
-            ConsoleManager.printSuccessfulMessage("Группа успешно удалена!");
+            ConsoleManager.printSuccessfulMessage("Данные о человеке успешно удалены!");
             return true;
         } catch (WrongAmountOfArgumentsException exception) {
             ConsoleManager.printErr("Использование: '" + getName() + "'");

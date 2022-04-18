@@ -91,7 +91,7 @@ public class CommandManager {
     public boolean help(String argument) {
         if (helpCommand.execute(argument)) {
             for (Command command : commands) {
-                System.out.println("Название команды: " + command.getName() + ". Функционал: " + command.getDescription());
+                ConsoleManager.printInfo("Название команды: " + command.getName() + ". Функционал: " + command.getDescription());
             }
             return true;
         } else return false;

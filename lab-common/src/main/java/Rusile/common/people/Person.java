@@ -1,44 +1,48 @@
-package com.people;
+package Rusile.common.people;
+
 
 import javax.validation.constraints.*;
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
 /**
  * Person's data class
  */
-public class Person implements Comparable<Person> {
+public class Person implements Comparable<Person>, Serializable{
     @NotNull
-    @Positive
+    @Positive(message = "ID должен быть больше нуля!")
     private Long id; //Поле не может быть null, Значение поля должно быть больше 0, Значение этого поля должно быть уникальным, Значение этого поля должно генерироваться автоматически
     @NotBlank(message = "Имя должно содержать хотя бы 1 символ")
     @Pattern(regexp = "^[A-Z][a-z]*(\\\\s(([a-z]{1,3})|(([a-z]+\\\\')?[A-Z][a-z]*)))*$", message = "Имя должно начинаться с заглавной буквы и представлено в символьном формате!")
     private String name; //Поле не может быть null, Строка не может быть пустой
-    @NotNull
+    @NotNull(message = "Координаты не могут быть null")
     private Coordinates coordinates; //Поле не может быть null
-    @NotNull
+    @NotNull(message = "Дата не может быть null")
     @PastOrPresent
     private LocalDateTime creationDate; //Поле не может быть null, Значение этого поля должно генерироваться автоматически
-    @Positive
+    @NotNull(message = "Рост не может быть null")
+    @Positive(message = "Рост должен быть больше нуля")
     private int height; //Значение поля должно быть больше 0
     private Color eyeColor; //Поле может быть null
     private Color hairColor; //Поле может быть null
-    @NotNull
+    @NotNull(message = "Национальность не может быть null")
     private Country nationality; //Поле не может быть null
     private Location location; //Поле может быть null
 
     /**
-     * @param id           - person's id
-     * @param name         - person's name
-     * @param coordinates  - person's coordinates
+     *
+     * @param id - person's id
+     * @param name - person's name
+     * @param coordinates - person's coordinates
      * @param creationDate - date of adding the person to the collection
-     * @param height       - person's height
-     * @param eyeColor     - person's eye color
-     * @param hairColor    - person's hair color
-     * @param nationality  - person's nationality
-     * @param location     - person's location
+     * @param height - person's height
+     * @param eyeColor - person's eye color
+     * @param hairColor - person's hair color
+     * @param nationality - person's nationality
+     * @param location - person's location
      */
-    public Person(Long id, String name, Coordinates coordinates, java.time.LocalDateTime creationDate, int height, Color eyeColor, Color hairColor, Country nationality, Location location) {
+    public Person(Long id, String name, Coordinates coordinates, LocalDateTime creationDate, int height, Color eyeColor, Color hairColor, Country nationality, Location location) {
         this.id = id;
         this.name = name;
         this.coordinates = coordinates;
@@ -145,7 +149,7 @@ public class Person implements Comparable<Person> {
     public String toString() {
         return "Person{" +
                 "id=" + id +
-                ", name='" + name + '\'' +
+                ", name=" + name +
                 ", coordinates=" + coordinates +
                 ", creationDate=" + creationDate +
                 ", height=" + height +
@@ -158,7 +162,6 @@ public class Person implements Comparable<Person> {
 
     /**
      * Compares name, height and nationality
-     *
      * @param another - another person to compare
      * @return 0 if equals, >0 is greater, <0 if less
      */

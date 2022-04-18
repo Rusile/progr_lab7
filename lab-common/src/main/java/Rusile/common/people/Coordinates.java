@@ -1,17 +1,12 @@
-package com.people;
+package Rusile.common.people;
 
-import javax.validation.constraints.Max;
-import javax.validation.constraints.NotNull;
+import java.io.Serializable;
 import java.util.Objects;
 /**
  * Coordinates data class
  */
-public class Coordinates {
-    public static final long MAX_X = 416;
-    @NotNull
-    @Max(value = MAX_X, message = "Координата по X должна быть меньше 416")
+public class Coordinates implements Serializable {
     private Long x; //Максимальное значение поля: 416, Поле не может быть null
-    @NotNull
     private Float y; //Поле не может быть null
 
     public Coordinates(Long x, Float y) {

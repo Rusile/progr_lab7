@@ -1,16 +1,15 @@
-package com.people;
+package Rusile.common.people;
 
-import javax.validation.constraints.NotNull;
+import java.io.Serializable;
 import java.util.Objects;
 
 /**
  *  Location data class
  */
-public class Location {
+public class Location implements Serializable {
     private double x;
     private double y;
     private int z;
-    @NotNull
     private String name; //Поле не может быть null
 
     /**
