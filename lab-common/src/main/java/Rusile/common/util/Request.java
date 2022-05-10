@@ -1,12 +1,13 @@
 package Rusile.common.util;
 
+import Rusile.common.interfaces.Data;
 import Rusile.common.people.Color;
 import Rusile.common.people.Person;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
-public class Request implements Serializable {
+public class Request implements Serializable, Data {
 
     private final String commandName;
     private String clientInfo;
@@ -78,10 +79,16 @@ public class Request implements Serializable {
     }
 
     @Override
-    public String toString() {
+    public String getData(){
         return "Name of command to send: " + commandName
-                + (personArgument == null ? "" : "\nInfo about person to send:\n " + personArgument)
-                + (numericArgument == null ? "" : "\nNumeric argument to send:\n " + numericArgument)
-                + (hairColor == null ? "" : "\n HairColor argument to send:\n " + hairColor);
+                + (personArgument == null ? "" : ("\nInfo about person to send:\n " + personArgument) )
+                + (numericArgument == null ? "" : ("\nNumeric argument to send:\n " + numericArgument) )
+                + (hairColor == null ? "" : ("\n HairColor argument to send:\n " + hairColor) ) ;
+    }
+
+
+    @Override
+    public String toString() {
+        return "Request[" + commandName + "]" ;
     }
 }

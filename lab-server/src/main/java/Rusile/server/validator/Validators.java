@@ -6,6 +6,7 @@ import Rusile.common.people.Coordinates;
 import Rusile.common.people.Location;
 import Rusile.common.people.Person;
 import Rusile.common.util.TextWriter;
+import Rusile.server.ServerConfig;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
@@ -30,7 +31,7 @@ public class Validators {
             }
             Set<ConstraintViolation<Person>> validatedPerson = validator.validate(person);
             if (!validatedPerson.isEmpty() || !validatedCoordinates.isEmpty() || !validatedLocation.isEmpty()) {
-                TextWriter.printErr("Errors in jason file!");
+                ServerConfig.logger.fatal("Errors in json file!");
                 validatedPerson.stream().map(ConstraintViolation::getMessage)
                         .forEach(TextWriter::printErr);
                 validatedCoordinates.stream().map(ConstraintViolation::getMessage)
@@ -40,7 +41,7 @@ public class Validators {
                 System.exit(1);
             }
         }
-        TextWriter.printSuccessfulMessage("Data from json file successfully loaded!");
+        ServerConfig.logger.info("Data from json file successfully loaded!");
     }
 
 

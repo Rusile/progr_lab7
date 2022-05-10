@@ -1,11 +1,10 @@
 package Rusile.server;
 
 
+import Rusile.common.people.Person;
 
-import Rusile.server.parser.FileManager;
-import Rusile.server.util.CollectionManager;
-
-import java.io.IOException;
+import java.time.LocalDateTime;
+import java.util.ArrayDeque;
 import java.util.Scanner;
 
 public class ConsoleThread extends Thread {
@@ -18,12 +17,9 @@ public class ConsoleThread extends Thread {
         while (running) {
             String line = scanner.nextLine();
             if ("save".equalsIgnoreCase(line)) {
-                //try {
-                    ServerConfig.fileManager.writeCollection(ServerConfig.collectionManager.getCollection());
-                    ServerConfig.logger.info("Collection saved");
-//                } catch (IOException e) {
-////                    ServerConfig.logger.fatal("Something went wrong, can't save collection");
-////                }
+                ServerConfig.fileManager.writeCollection((ArrayDeque<Person>) ServerConfig.collectionManager.getCollection());
+                ServerConfig.collectionManager.setLastSaveTime(LocalDateTime.now());
+                ServerConfig.logger.info("Collection saved");
             }
             if ("exit".equalsIgnoreCase(line)) {
                 ServerConfig.logger.info("Server closed");

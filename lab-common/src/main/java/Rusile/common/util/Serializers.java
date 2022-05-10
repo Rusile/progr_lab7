@@ -1,5 +1,7 @@
 package Rusile.common.util;
 
+import Rusile.common.interfaces.Data;
+
 import java.io.*;
 import java.nio.ByteBuffer;
 
@@ -8,7 +10,7 @@ public class Serializers {
     private Serializers() {
     }
 
-    public static ByteBuffer serializeRequest(Request request) throws IOException {
+    public static ByteBuffer serializeRequest(Data request) throws IOException {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         ObjectOutputStream objectOutputStream = new ObjectOutputStream(byteArrayOutputStream);
         objectOutputStream.writeObject(request);
@@ -19,7 +21,7 @@ public class Serializers {
         return bufToSend;
     }
 
-    public static ByteBuffer serializeResponse(Response response) throws IOException {
+    public static ByteBuffer serializeResponse(Data response) throws IOException {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         ObjectOutputStream objectOutputStream = new ObjectOutputStream(byteArrayOutputStream);
         objectOutputStream.writeObject(response);
@@ -43,8 +45,8 @@ public class Serializers {
         ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(acceptedBuf);
         ObjectInputStream objectInputStream = new ObjectInputStream(byteArrayInputStream);
         Response response = (Response) objectInputStream.readObject();
-        byteArrayInputStream.close();
         objectInputStream.close();
+        byteArrayInputStream.close();
         return response;
     }
 }

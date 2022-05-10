@@ -1,105 +1,146 @@
 package Rusile.server;
 
+import Rusile.common.people.Person;
 import Rusile.common.util.Request;
 import Rusile.common.util.Response;
-import Rusile.common.util.Serializers;
+import Rusile.common.util.TextWriter;
 import Rusile.server.ClientCommands.AbstractCommand;
 import Rusile.server.exceptions.DisconnectInitException;
-import com.thoughtworks.xstream.converters.ConversionException;
-import com.thoughtworks.xstream.io.StreamException;
+import Rusile.server.util.RequestBuilder;
+import Rusile.server.util.ServerSocketIO;
 
 import java.io.*;
-import java.net.InetSocketAddress;
+import java.net.BindException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.nio.ByteBuffer;
-import java.nio.channels.SelectionKey;
-import java.nio.channels.Selector;
-import java.nio.channels.ServerSocketChannel;
-import java.nio.channels.SocketChannel;
-import java.util.Iterator;
-import java.util.Set;
+import java.util.ArrayDeque;
+import java.util.Locale;
+import java.util.NoSuchElementException;
+import java.util.Scanner;
 
 public final class Server {
-    private static Selector selector;
-    protected static String fileName;
+    static String fileName;
+    private static Socket clientSocket;
+    private static ServerSocket serverSocket;
+    private static ConsoleThread consoleThread;
+
+    private static boolean reconnectionMode = false;
 
     private Server() {
         throw new UnsupportedOperationException("This is an utility class and can not be instantiated");
     }
 
     public static void main(String[] args) {
+        if (args.length == 0) {
+            ServerConfig.logger.error("Filename of collection have not been entered!");
+            System.exit(1);
+        }
         fileName = args[0];
-        ConsoleThread consoleThread = new ConsoleThread();
-        consoleThread.start();
-        startServer(args);
-        consoleThread.shutdown();
+
+        try {
+            if (reconnectionMode) {
+                serverSocket.close();
+                serverSocket = new ServerSocket(ServerConfig.PORT);
+                reconnectionMode = false;
+                startServer(args, serverSocket);
+            } else {
+                createServerSocket();
+                ServerConfig.fileManager.readCollection(fileName);
+                consoleThread = new ConsoleThread();
+                consoleThread.start();
+
+                startServer(args, serverSocket);
+                consoleThread.shutdown();
+            }
+        } catch (IOException e) {
+            ServerConfig.logger.fatal("Apparently client disconnected. Trying to reconnect.");
+            reconnectionMode = true;
+            main(args);
+        }
     }
 
-    private static void startServer(String[] args) {
-        ServerConfig.logger.info("Server started");
-        String fileName = args[0];
-        ServerConfig.fileManager.readCollection(fileName);
+    private static void startServer(String[] args, ServerSocket serverSocket) throws IOException {
         try {
-            selector = Selector.open();
-            ServerSocketChannel server = initChannel(selector);
-            startSelectorLoop(server);
-        } catch (IOException e) {
-            ServerConfig.logger.fatal("Some problems with IO. Try again");
+            ServerConfig.logger.info("Server started, trying to get the connection...");
+            clientSocket = serverSocket.accept();
+            ServerConfig.logger.info("Server get connection from " + clientSocket.getLocalAddress());
+            startSelectorLoop(clientSocket);
         } catch (ClassNotFoundException e) {
             ServerConfig.logger.error("Trying to serialize non-serializable object");
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            ServerConfig.logger.error(e.getMessage());
         }
     }
 
-    private static void startSelectorLoop(ServerSocketChannel channel) throws IOException, ClassNotFoundException, InterruptedException {
-        while (channel.isOpen()) {
-            selector.select();
-            startIteratorLoop(channel);
+    private static void startSelectorLoop(Socket socket) throws IOException, ClassNotFoundException, InterruptedException {
+        while (socket.isConnected()) {
+            startIteratorLoop(socket);
         }
     }
 
-    private static void startIteratorLoop(ServerSocketChannel channel) throws IOException, ClassNotFoundException {
-        Set<SelectionKey> readyKeys = selector.selectedKeys();
-        Iterator<SelectionKey> iterator = readyKeys.iterator();
-        while (iterator.hasNext()) {
-            SelectionKey key = iterator.next();
-            iterator.remove();
+    private static void startIteratorLoop(Socket socket) throws IOException, ClassNotFoundException {
+        try {
 
-            if (key.isAcceptable()) {
-                SocketChannel socketChannel = channel.accept();
-                ServerConfig.logger.info("Server get connection from " + socketChannel.getLocalAddress());
-                socketChannel.configureBlocking(false);
-                socketChannel.register(selector, SelectionKey.OP_READ);
-            } else if (key.isReadable()) {
-                SocketChannel socketChannel = (SocketChannel) key.channel();
-                ServerConfig.logger.info("Client " + socketChannel.getLocalAddress() + " trying to send message");
-                Request request = IOController.getRequest(socketChannel);
-                AbstractCommand command = ServerConfig.commandManager.initCommand(request);
-                ServerConfig.logger.info("Server receive [" + request.getCommandName() + "] command");
+            ServerSocketIO socketIO = new ServerSocketIO(socket);
+            Request request = (Request) socketIO.receive();
+
+            AbstractCommand command = ServerConfig.commandManager.initCommand(request);
+            ServerConfig.logger.info("Server receive [" + request.getCommandName() + "] command");
+
+            Response response = RequestBuilder.build(command, request);
+
+            socketIO.send(response);
+
+            ServerConfig.logger.info("Server wrote response to client");
+        } catch (DisconnectInitException e) {
+            serverSocket.close();
+            socket.close();
+            ServerConfig.fileManager.writeCollection((ArrayDeque<Person>) ServerConfig.collectionManager.getCollection());
+            ServerConfig.logger.info("Server stopped. Collection successfully saved");
+        }
+    }
+
+
+    private static void createServerSocket() {
+        Scanner sc = ServerConfig.scanner;
+        TextWriter.printInfoMessage("Do you want to use a default port? [y/n]");
+        try {
+            String s = sc.nextLine().trim().toLowerCase(Locale.ROOT);
+            if ("n".equals(s)) {
+                TextWriter.printInfoMessage("Please enter the port (1-65535)");
+                String port = sc.nextLine();
                 try {
-                    Response response = IOController.buildResponse(command, request);
-                    ByteBuffer buffer = Serializers.serializeResponse(response);
-                    socketChannel.write(buffer);
-                    ServerConfig.logger.info("Server wrote response to client");
-                } catch (DisconnectInitException e) {
-                    ServerConfig.fileManager.writeCollection(ServerConfig.collectionManager.getCollection());
-                    ServerConfig.logger.info("Client " + socketChannel.getLocalAddress() + " init disconnect. Collection successfully saved");
-                    socketChannel.close();
-                    break;
+                    int portInt = Integer.parseInt(port);
+                    if (portInt > 0 && portInt <= 65535) {
+                        ServerConfig.PORT = portInt;
+                        serverSocket = new ServerSocket(portInt);
+                    } else {
+                        TextWriter.printErr("The number did not fall within the limits, repeat the input");
+                        createServerSocket();
+                    }
+                } catch (IllegalArgumentException e) {
+                    TextWriter.printErr("Error processing the number, repeat the input");
+                    createServerSocket();
                 }
+            } else if ("y".equals(s)) {
+                serverSocket = new ServerSocket(ServerConfig.PORT);
+            } else {
+                TextWriter.printErr("You entered not valid symbol, try again");
+                createServerSocket();
             }
+        } catch (NoSuchElementException e) {
+            TextWriter.printErr("An invalid character has been entered, forced shutdown!");
+            System.exit(1);
+        } catch (IllegalArgumentException e) {
+            TextWriter.printErr("Error processing the number, repeat the input");
+            createServerSocket();
+        } catch (BindException e) {
+            TextWriter.printErr("This port is unavailable. Enter another one!");
+            createServerSocket();
+        } catch (IOException e) {
+            TextWriter.printErr("Some problems with IO. ServerSocket with this port can't be created.");
+            createServerSocket();
         }
-    }
-
-    private static ServerSocketChannel initChannel(Selector selector) throws IOException {
-        ServerSocketChannel server = ServerSocketChannel.open();
-        ServerConfig.logger.info("Socket opened");
-        server.socket().bind(new InetSocketAddress(ServerConfig.SERVER_PORT));
-        server.configureBlocking(false);
-        server.register(selector, SelectionKey.OP_ACCEPT);
-        return server;
     }
 
 }

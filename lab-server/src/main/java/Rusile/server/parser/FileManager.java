@@ -49,8 +49,7 @@ public class FileManager {
         } catch (IOException e) {
             ServerConfig.logger.fatal("File doesn't exist");
             System.exit(0);
-        } catch (
-                StreamException e) {
+        } catch (StreamException e) {
             ServerConfig.logger.fatal("File is empty");
             System.exit(0);
         }

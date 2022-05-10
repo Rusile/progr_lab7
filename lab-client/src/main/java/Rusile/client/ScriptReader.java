@@ -4,7 +4,6 @@ import Rusile.client.CommandDispatcher.CommandToSend;
 
 import java.io.File;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 public class ScriptReader {
@@ -18,7 +17,7 @@ public class ScriptReader {
         }
         this.filename = commandToSend.getCommandArgs()[0];
         namesOfRanScripts.add(filename);
-        path = new File(new File(System.getProperty("user.dir")), filename);//Path.of(filename).toAbsolutePath();
+        path = new File(new File(System.getProperty("user.dir")), filename);
     }
 
     private boolean scriptAlreadyRan(String commandLine) {

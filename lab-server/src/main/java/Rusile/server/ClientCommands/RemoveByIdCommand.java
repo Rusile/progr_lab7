@@ -31,7 +31,7 @@ public class RemoveByIdCommand extends AbstractCommand {
         Long id = request.getNumericArgument();
         Person personToRemove = collectionManager.getById(id);
         if (personToRemove == null)
-            return new Response(TextWriter.getRedText("A person with such an id does not exist!"));
+            return new Response(TextWriter.getRedText("The person with such an id does not exist!"));
         else {
             collectionManager.removeById(id);
             return new Response(TextWriter.getGreenText("The person was successfully deleted!"));

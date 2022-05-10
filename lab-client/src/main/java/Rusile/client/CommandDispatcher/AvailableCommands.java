@@ -10,7 +10,7 @@ public class AvailableCommands {
     public static final Set<String> COMMANDS_WITH_HAIR_ARG = new HashSet<>();
     public static final Set<String> COMMANDS_WITH_PERSON_ARG = new HashSet<>();
     public static final Set<String> COMMANDS_WITH_PERSON_ID_ARGS = new HashSet<>();
-    public static final String SCRIPT_ARGUMENT_COMMAND;
+    public static final Set<String> SCRIPT_ARGUMENT_COMMAND = new HashSet<>();
 
     static {
         Collections.addAll(COMMANDS_WITHOUT_ARGS,
@@ -37,7 +37,7 @@ public class AvailableCommands {
         );
         Collections.addAll(COMMANDS_WITH_PERSON_ID_ARGS,
                 "update");
-        SCRIPT_ARGUMENT_COMMAND = "execute_script";
+        SCRIPT_ARGUMENT_COMMAND.add("execute_script");
     }
 
 

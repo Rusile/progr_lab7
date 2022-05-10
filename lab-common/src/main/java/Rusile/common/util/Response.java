@@ -1,11 +1,13 @@
 package Rusile.common.util;
 
+import Rusile.common.interfaces.Data;
 import Rusile.common.people.Person;
 
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.Deque;
 
-public class Response implements Serializable {
+public class Response implements Serializable, Data {
 
     private String messageToResponse;
     private Person personToResponse;
@@ -45,17 +47,15 @@ public class Response implements Serializable {
         return collectionToResponse;
     }
 
-    public String getInfoAboutResponse() {
-        return "Response contains: " + (messageToResponse == null ? "" : "\nmessage:\n " + getMessageToResponse() )
-                + (personToResponse == null ? "" : "\nperson info:\n" + getPersonToResponse().toString())
-                + (collectionToResponse == null ? "" : "\ncollection:\n" + getCollectionToResponse().toString());
+    @Override
+    public String getData() {
+        return "Response contains: " + (messageToResponse == null ? "" : ("\n-Message:\n" + getMessageToResponse()) )
+                + (personToResponse == null ? "" : ("\n-Person's data:\n" +  getPersonToResponse().toString()) )
+                + (collectionToResponse == null ? "" : ("\n-Collection:\n" + getCollectionToResponse()) );
     }
 
     @Override
     public String toString() {
-        return (messageToResponse == null ? "" : messageToResponse)
-                + (personToResponse == null ? "" : "\n" + personToResponse)
-                + ((collectionToResponse == null) ? "" : (collectionToResponse.isEmpty()) ? "Collection is empty." : "\n"
-                + collectionToResponse);
+        return "Response[" + messageToResponse + "]";
     }
 }

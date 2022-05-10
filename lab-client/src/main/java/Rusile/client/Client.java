@@ -3,17 +3,14 @@ package Rusile.client;
 import Rusile.client.CommandDispatcher.CommandListener;
 import Rusile.client.CommandDispatcher.CommandToSend;
 import Rusile.client.CommandDispatcher.CommandValidators;
+import Rusile.client.NetworkManager.ClientSocketChannelIO;
 import Rusile.client.NetworkManager.RequestCreator;
-import Rusile.client.NetworkManager.RequestSender;
-import Rusile.client.NetworkManager.ResponseReceiver;
 import Rusile.common.exception.WrongAmountOfArgumentsException;
 import Rusile.common.util.Request;
 import Rusile.common.util.Response;
 import Rusile.common.util.TextWriter;
 
 import java.io.IOException;
-import java.io.StreamCorruptedException;
-import java.net.ConnectException;
 import java.net.InetSocketAddress;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
@@ -28,31 +25,32 @@ public final class Client {
     }
 
     private static int PORT = 45846;
+    private static String HOST;
+    private static final int maxPort = 65535;
+
     private static final Scanner SCANNER = new Scanner(System.in);
     private static Selector selector;
-    private static final int maxPort = 65535;
-    private static final CommandListener commandListener = new CommandListener(System.in);
     private static final RequestCreator requestCreator = new RequestCreator();
+
+    private static boolean reconnectionMode = false;
+    private static int attempts = 0;
 
 
     public static void main(String[] args) {
 
         try {
-            TextWriter.printInfoMessage("Enter hostname: ");
-            String hostname = SCANNER.nextLine();
-            inputPort();
-            InetSocketAddress hostAddress = new InetSocketAddress(hostname, PORT);
-            selector = Selector.open();
-            SocketChannel client = SocketChannel.open(hostAddress);
+            if (!reconnectionMode) {
+                inputPort();
+            } else {
+                Thread.sleep(8 * 1000);
+            }
+            SocketChannel clientChannel = SocketChannel.open(new InetSocketAddress(HOST, PORT));
             TextWriter.printSuccessfulMessage("Connected!");
-            client.configureBlocking(false);
-            client.register(selector, SelectionKey.OP_WRITE);
-            startSelectorLoop(client, SCANNER);
-        } catch (ConnectException e) {
-            TextWriter.printErr("Server with this host is temporarily unavailable. Try again later");
-            main(args);
-        } catch (StreamCorruptedException e) {
-            TextWriter.printErr("Disconnected.");
+            attempts = 0;
+            clientChannel.configureBlocking(false);
+            selector = Selector.open();
+            clientChannel.register(selector, SelectionKey.OP_WRITE);
+            startSelectorLoop(clientChannel, SCANNER);
         } catch (ClassNotFoundException e) {
             TextWriter.printErr("Trying to serialize non-serializable object");
         } catch (InterruptedException e) {
@@ -61,7 +59,13 @@ public final class Client {
             TextWriter.printErr("Server with this host not found. Try again");
             main(args);
         } catch (IOException e) {
-            TextWriter.printErr("Server invalid or closed. Try to connect again");
+            TextWriter.printErr("Server is invalid. Trying to reconnect, attempt #" + (attempts + 1));
+            reconnectionMode = true;
+            if (attempts == 4) {
+                TextWriter.printErr("Reconnection failed. Server is dead. Try later...");
+                System.exit(1);
+            }
+            attempts++;
             main(args);
         } catch (NoSuchElementException e) {
             TextWriter.printErr("An invalid character has been entered, forced shutdown!");
@@ -82,15 +86,18 @@ public final class Client {
             SelectionKey key = iterator.next();
             iterator.remove();
             if (key.isReadable()) {
-                ResponseReceiver responseReceiver = new ResponseReceiver(channel, key, selector);
-                Response response = responseReceiver.receive();
-                TextWriter.printInfoMessage(response.getInfoAboutResponse());
-                if (response.getCollectionToResponse() != null) {
-                    TextWriter.printInfoMessage(response.getCollectionToResponse().toString());
-                }
+
+                SocketChannel clientChannel = (SocketChannel) key.channel();
+
+                ClientSocketChannelIO socketChannelIO = new ClientSocketChannelIO(clientChannel);
+                Response response = (Response) socketChannelIO.receive();
+
+                TextWriter.printInfoMessage(response.getData());
+
+                clientChannel.register(selector, SelectionKey.OP_WRITE);
             } else if (key.isWritable()) {
                 try {
-                    CommandToSend commandToSend = commandListener.readCommand(sc);
+                    CommandToSend commandToSend = CommandListener.readCommand(sc);
                     if (commandToSend == null) return false;
                     if (commandToSend.getCommandName().equalsIgnoreCase("execute_script")) {
                         CommandValidators.validateAmountOfArgs(commandToSend.getCommandArgs(), 1);
@@ -98,13 +105,17 @@ public final class Client {
                         startSelectorLoop(channel, new Scanner(scriptReader.getPath()));
                         scriptReader.stopScriptReading();
                         startSelectorLoop(channel, SCANNER);
-
                     }
-                    RequestSender requestSender = new RequestSender(channel, selector);
+
                     Request request = requestCreator.createRequestOfCommand(commandToSend);
-                    if (request == null) throw new NullPointerException();
-                    requestSender.send(request);
-                } catch (NullPointerException | IOException | IllegalArgumentException | WrongAmountOfArgumentsException e) {
+                    if (request == null) throw new NullPointerException("");
+                    SocketChannel client = (SocketChannel) key.channel();
+
+                    ClientSocketChannelIO socketChannelIO = new ClientSocketChannelIO(client);
+                    socketChannelIO.send(request);
+
+                    client.register(selector, SelectionKey.OP_READ);
+                } catch (NullPointerException | IllegalArgumentException | WrongAmountOfArgumentsException e) {
                     TextWriter.printErr(e.getMessage());
                 }
 
@@ -117,6 +128,13 @@ public final class Client {
 
 
     private static void inputPort() {
+        TextWriter.printInfoMessage("Enter hostname:");
+        try {
+            HOST = SCANNER.nextLine();
+        } catch (NoSuchElementException e) {
+            TextWriter.printErr("An invalid character has been entered, forced shutdown!");
+            System.exit(1);
+        }
         TextWriter.printInfoMessage("Do you want to use a default port? [y/n]");
         try {
             String s = SCANNER.nextLine().trim().toLowerCase(Locale.ROOT);
@@ -144,6 +162,4 @@ public final class Client {
             System.exit(1);
         }
     }
-
-
 }

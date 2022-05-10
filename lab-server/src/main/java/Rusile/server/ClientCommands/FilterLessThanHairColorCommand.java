@@ -29,7 +29,7 @@ public class FilterLessThanHairColorCommand extends AbstractCommand {
     @Override
     public Response execute(Request request) {
         Color filterColor = request.getHairColor();
-        ArrayDeque<Person> filteredCollection = collectionManager.getFilteredLessByHairColorCollection(filterColor);
+        ArrayDeque<Person> filteredCollection = (ArrayDeque<Person>) collectionManager.getFilteredLessByHairColorCollection(filterColor);
         if (!filteredCollection.isEmpty())
             return new Response(TextWriter.getGreenText("The collection has been filtered out successfully!"), filteredCollection);
         else

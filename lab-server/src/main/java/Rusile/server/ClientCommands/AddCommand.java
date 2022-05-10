@@ -21,7 +21,7 @@ public class AddCommand extends AbstractCommand {
     @Override
     public Response execute(Request request) {
         collectionManager.addToCollection(request.getPersonArgument());
-        return new Response(TextWriter.getGreenText("Данные о персоне успешно добавлены!"), request.getPersonArgument());
+        return new Response(TextWriter.getGreenText("Person was successfully added!"), request.getPersonArgument());
     }
 
 }
