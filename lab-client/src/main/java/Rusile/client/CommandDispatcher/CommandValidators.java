@@ -24,4 +24,5 @@ public class CommandValidators {
             throw new WrongArgException(wrong);
         }
     }
+
 }

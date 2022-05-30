@@ -10,11 +10,12 @@ import java.util.Scanner;
 
 public class CommandListener {
 
-    public static CommandToSend readCommand(Scanner sc) {
+    public static CommandToSend readCommand(Scanner sc, boolean scriptMode) {
         try {
-            TextWriter.printInfoMessage("Enter a command:");
+            if (!scriptMode)
+                TextWriter.printInfoMessage("Enter a command:");
             System.out.print(ScannerManager.INPUT_COMMAND);
-            String[] splitedInput = sc.nextLine().trim().split(" ");
+            String[] splitedInput = sc.nextLine().trim().split("\\s+");
             if (splitedInput[0].equals("EOF")) return null;
             String commandName = splitedInput[0].toLowerCase(Locale.ROOT);
             String[] commandsArgs = Arrays.copyOfRange(splitedInput, 1, splitedInput.length);

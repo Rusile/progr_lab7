@@ -4,10 +4,7 @@ package Rusile.server.ClientCommands;
 import Rusile.common.util.Request;
 import Rusile.common.util.Response;
 import Rusile.common.util.TextWriter;
-import Rusile.server.ServerConfig;
 import Rusile.server.util.CommandManager;
-
-import java.util.HashMap;
 
 /**
  * 'help' command. Just for logical structure. Does nothing.

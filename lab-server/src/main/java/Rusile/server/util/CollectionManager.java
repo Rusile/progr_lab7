@@ -5,10 +5,10 @@ import Rusile.common.people.Color;
 import Rusile.common.people.Person;
 
 import java.time.LocalDateTime;
-import java.util.ArrayDeque;
-import java.util.Comparator;
-import java.util.Deque;
-import java.util.NoSuchElementException;
+import java.util.*;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.stream.Collectors;
 
 /**
  * This class realizes all operations with the collection
@@ -17,13 +17,18 @@ public class CollectionManager {
     private ArrayDeque<Person> peopleCollection = new ArrayDeque<>();
     private LocalDateTime lastInitTime;
     private LocalDateTime lastSaveTime;
+    private final ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
 
 
     public Deque<Person> sort(Deque<Person> collection) {
-        Deque<Person> sorted = new ArrayDeque<>();
-        collection.stream().sorted().forEach(sorted::addLast);
-        return sorted;
+        try {
+            readWriteLock.writeLock().lock();
+            return collection.stream().sorted().collect(Collectors.toCollection(ArrayDeque<Person>::new));
+        } finally {
+            readWriteLock.writeLock().unlock();
+        }
     }
+
 
     /**
      * @return The collecton itself.
@@ -50,30 +55,50 @@ public class CollectionManager {
      * @return Name of the collection's type.
      */
     public String collectionType() {
-        return peopleCollection.getClass().getName();
+        try {
+            readWriteLock.readLock().lock();
+            return peopleCollection.getClass().getName();
+        } finally {
+            readWriteLock.readLock().unlock();
+        }
     }
 
     /**
      * @return Size of the collection.
      */
     public int collectionSize() {
-        return peopleCollection.size();
+        try {
+            readWriteLock.readLock().lock();
+            return peopleCollection.size();
+        } finally {
+            readWriteLock.readLock().unlock();
+        }
     }
 
     /**
      * @return The first element of the collection or null if collection is empty.
      */
     public Person getFirst() {
-        if (peopleCollection.isEmpty()) return null;
-        return peopleCollection.getFirst();
+        try {
+            readWriteLock.readLock().lock();
+            if (peopleCollection.isEmpty()) return null;
+            return peopleCollection.getFirst();
+        } finally {
+            readWriteLock.readLock().unlock();
+        }
     }
 
     /**
      * @return The last element of the collection or null if collection is empty.
      */
     public Person getLast() {
-        if (peopleCollection.isEmpty()) return null;
-        return peopleCollection.getLast();
+        try {
+            readWriteLock.readLock().lock();
+            if (peopleCollection.isEmpty()) return null;
+            return peopleCollection.getLast();
+        } finally {
+            readWriteLock.readLock().unlock();
+        }
     }
 
     /**
@@ -82,12 +107,15 @@ public class CollectionManager {
      */
     public Person getById(Long id) {
         try {
+            readWriteLock.readLock().lock();
             return (Person) peopleCollection.stream()
                     .filter(s -> s.getId()
                             .equals(id))
                     .toArray()[0];
         } catch (IndexOutOfBoundsException e) {
             return null;
+        } finally {
+            readWriteLock.readLock().lock();
         }
     }
 
@@ -97,7 +125,12 @@ public class CollectionManager {
      * @param id A person id to remove.
      */
     public void removeById(Long id) {
-        peopleCollection.removeIf(p -> p.getId().equals(id));
+        try {
+            readWriteLock.writeLock().lock();
+            peopleCollection.removeIf(p -> p.getId().equals(id));
+        } finally {
+            readWriteLock.writeLock().unlock();
+        }
     }
 
     /**
@@ -106,17 +139,29 @@ public class CollectionManager {
      */
     public Person getByValue(Person personToFind) {
         try {
+            readWriteLock.readLock().lock();
             return peopleCollection.stream().filter(p -> p.equals(personToFind)).findFirst().get();
         } catch (NoSuchElementException e) {
             return null;
+        } finally {
+            readWriteLock.readLock().lock();
         }
     }
 
-    public void addIfMin(Person personToAdd) throws PersonNotMinException {
-        if (personToAdd.compareTo(getFirst()) < 0)
-            addToCollection(personToAdd);
-        else throw new PersonNotMinException("This person is not minimal!");
+    public boolean checkMin(Person personToAdd) {
+        try {
+            readWriteLock.readLock().lock();
+            return personToAdd.compareTo(getFirst()) < 0;
+        } finally {
+            readWriteLock.readLock().unlock();
+        }
     }
+
+//    public void addIfMin(Person personToAdd) throws PersonNotMinException {
+//        if (personToAdd.compareTo(getFirst()) < 0)
+//            addToCollection(personToAdd);
+//        else throw new PersonNotMinException("This person is not minimal!");
+//    }
 
     /**
      * Adds a new person to collection.
@@ -124,25 +169,40 @@ public class CollectionManager {
      * @param person - A person to add.
      */
     public void addToCollection(Person person) {
-        peopleCollection.add(person);
-        peopleCollection = new ArrayDeque<>(sort(peopleCollection));
-        setLastInitTime(LocalDateTime.now());
+        try {
+            readWriteLock.writeLock().lock();
+            peopleCollection.add(person);
+            peopleCollection = new ArrayDeque<>(sort(peopleCollection));
+            setLastInitTime(LocalDateTime.now());
+        } finally {
+            readWriteLock.writeLock().unlock();
+        }
     }
 
 
     public void setLastInitTime(LocalDateTime lastInitTime) {
-        this.lastInitTime = lastInitTime;
+        try {
+            readWriteLock.writeLock().lock();
+            this.lastInitTime = lastInitTime;
+        } finally {
+            readWriteLock.writeLock().unlock();
+        }
     }
 
-    public void setLastSaveTime(LocalDateTime lastSaveTime) {
-        this.lastSaveTime = lastSaveTime;
-    }
+//    public void setLastSaveTime(LocalDateTime lastSaveTime) {
+//        this.lastSaveTime = lastSaveTime;
+//    }
 
     /**
      * Clears the collection.
      */
     public void clearCollection() {
-        peopleCollection.clear();
+        try {
+            readWriteLock.writeLock().lock();
+            peopleCollection.clear();
+        } finally {
+            readWriteLock.writeLock().unlock();
+        }
     }
 
     /**
@@ -151,22 +211,30 @@ public class CollectionManager {
      * @return Next ID.
      */
     public Long generateNextId() {
-        if (peopleCollection.isEmpty()) return 1L;
-        return peopleCollection.getLast().getId() + 1;
+        try {
+            readWriteLock.readLock().lock();
+            if (peopleCollection.isEmpty()) return 1L;
+            return peopleCollection.getLast().getId() + 1;
+        } finally {
+            readWriteLock.readLock().unlock();
+        }
     }
 
     /**
-     * Deletes all people in collection who a lower than specified
+//     * Deletes all people in collection who a lower than specified
      *
-     * @param personToRemove - person that to compare
+  //   * @param personToRemove - person that to compare
      */
-    public void removeLower(Person personToRemove) {
-        peopleCollection.removeIf(p -> p.compareTo(personToRemove) < 0);
-    }
-
-
+//    public void removeLower(Person personToRemove) {
+//        peopleCollection.removeIf(p -> p.compareTo(personToRemove) < 0);
+//    }
     public void setPeopleCollection(ArrayDeque<Person> peopleCollection) {
-        this.peopleCollection = peopleCollection;
+        try {
+            readWriteLock.writeLock().lock();
+            this.peopleCollection = peopleCollection;
+        } finally {
+            readWriteLock.writeLock().unlock();
+        }
     }
 
     /**
@@ -174,27 +242,39 @@ public class CollectionManager {
      *
      * @param personToRemove A person to remove.
      */
-    public void removeFromCollection(Person personToRemove) {
-        peopleCollection.removeIf(person -> person.equals(personToRemove));
-    }
+//    public void removeFromCollection(Person personToRemove) {
+//        peopleCollection.removeIf(person -> person.equals(personToRemove));
+//    }
 
     /**
      * Removes person from the collection.
      *
      * @return headPerson The first person in ArrayDeque to remove and show.
      */
+    //test
     public Person removeHead() {
-        return peopleCollection.pollFirst();
+        try {
+            readWriteLock.readLock().lock();
+            return peopleCollection.pollFirst();
+        } finally {
+            readWriteLock.readLock().unlock();
+        }
     }
 
     /**
      * Prints the collection in descending order
      */
     public Deque<Person> getDescending() {
-        Deque<Person> tmp = new ArrayDeque<>();
-        peopleCollection.stream().sorted(Comparator.reverseOrder()).forEach(tmp::addLast);
-        return tmp;
+        try {
+            readWriteLock.readLock().lock();
+            return peopleCollection.stream().sorted(Comparator.reverseOrder()).collect(Collectors.toCollection(ArrayDeque<Person>::new));
+        } finally {
+            readWriteLock.readLock().unlock();
+        }
     }
+
+    //peopleCollection.stream().sorted(Comparator.reverseOrder()).collect(Collectors.toCollection(ArrayDeque::new));
+
 
     /**
      * Finds the person with the latest date of creation
@@ -202,7 +282,12 @@ public class CollectionManager {
      * @return personMaxByDate - person with the latest date of creation
      */
     public Person findMaxByDate() {
-        return peopleCollection.stream().max(Comparator.comparing(Person::getCreationDate)).get();
+        try {
+            readWriteLock.readLock().lock();
+            return peopleCollection.stream().max(Comparator.comparing(Person::getCreationDate)).get();
+        } finally {
+            readWriteLock.readLock().unlock();
+        }
     }
 
     /**
@@ -212,31 +297,78 @@ public class CollectionManager {
      * @return all people with the color of hair which is less than specified
      */
     public Deque<Person> getFilteredLessByHairColorCollection(Color hairColor) {
-        ArrayDeque<Person> filteredPeopleCollection = new ArrayDeque<>();
-        peopleCollection.stream().filter(person -> person.getHairColor().compareTo(hairColor) < 0).forEach(filteredPeopleCollection::addLast);
-        return filteredPeopleCollection;
+        try {
+            readWriteLock.readLock().lock();
+            return peopleCollection.stream()
+                    .filter(person -> person.getHairColor()
+                            .compareTo(hairColor) < 0)
+                    .collect(Collectors.toCollection(ArrayDeque<Person>::new));
+        } finally {
+            readWriteLock.readLock().unlock();
+        }
+    }
+
+    //test
+    public Deque<Person> getUsersElements(List<Long> ids) {
+        try {
+            readWriteLock.readLock().lock();
+            return peopleCollection.stream().filter(p -> ids.contains(p.getId())).collect(Collectors.toCollection(ArrayDeque::new));
+        } finally {
+            readWriteLock.readLock().unlock();
+        }
+    }
+
+    public List<Long> getLowerIds(Person person) {
+        try {
+            readWriteLock.readLock().lock();
+            return peopleCollection.stream()
+                    .filter(p -> p.compareTo(person) < 0)
+                    .map(Person::getId)
+                    .collect(Collectors.toList());
+        } finally {
+            readWriteLock.readLock().unlock();
+        }
+    }
+
+    public Deque<Person> getAlienElements(List<Long> ids) {
+        try {
+            readWriteLock.readLock().lock();
+            return peopleCollection.stream().filter(p -> !ids.contains(p.getId())).collect(Collectors.toCollection(ArrayDeque::new));
+        } finally {
+            readWriteLock.readLock().unlock();
+        }
     }
 
     public String getInfo() {
-        return "Collection type: " + ArrayDeque.class + ", type of elements: "
-                + Person.class
-                + (getLastInitTime() == null ? "" : (", date of initialization: " + getLastInitTime()))
-                + (getLastSaveTime() == null ? "" : (", date of last saving: " + getLastSaveTime()))
-                + ", number of elements: " + peopleCollection.size();
+        try {
+            readWriteLock.readLock().lock();
+            return "Collection type: " + ArrayDeque.class + ", type of elements: "
+                    + Person.class
+                    + (getLastInitTime() == null ? "" : (", date of initialization: " + getLastInitTime()))
+                    + (getLastSaveTime() == null ? "" : (", date of last saving: " + getLastSaveTime()))
+                    + ", number of elements: " + peopleCollection.size();
+        } finally {
+            readWriteLock.readLock().unlock();
+        }
 
 
     }
 
     @Override
     public String toString() {
-        if (peopleCollection.isEmpty()) return "Collection is empty!";
+        try {
+            readWriteLock.readLock().lock();
+            if (peopleCollection.isEmpty()) return "Collection is empty!";
 
-        StringBuilder info = new StringBuilder();
-        for (Person person : peopleCollection) {
-            info.append(person);
-            if (person != peopleCollection.getLast()) info.append("\n\n");
+            StringBuilder info = new StringBuilder();
+            for (Person person : peopleCollection) {
+                info.append(person);
+                if (person != peopleCollection.getLast()) info.append("\n\n");
+            }
+            return info.toString();
+        } finally {
+            readWriteLock.readLock().unlock();
         }
-        return info.toString();
     }
 
 }

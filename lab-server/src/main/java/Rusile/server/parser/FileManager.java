@@ -34,7 +34,6 @@ public class FileManager {
      */
     public void writeCollection(ArrayDeque<Person> personCollection) {
         try {
-
             if (fileName != null) {
                 File file = new File(fileName);
                 if (!file.canRead() || !file.canWrite())

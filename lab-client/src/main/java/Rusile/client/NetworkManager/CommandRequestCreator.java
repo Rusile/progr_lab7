@@ -9,12 +9,12 @@ import Rusile.common.exception.WrongAmountOfArgumentsException;
 import Rusile.common.exception.WrongArgException;
 import Rusile.common.people.Color;
 import Rusile.common.util.Request;
+import Rusile.common.util.RequestType;
 import Rusile.common.util.TextWriter;
 
-import java.util.Arrays;
 import java.util.Scanner;
 
-public class RequestCreator {
+public class CommandRequestCreator {
 
     private Scanner scanner = new Scanner(System.in);
     private ScannerManager scannerManager = new ScannerManager(scanner);
@@ -32,8 +32,6 @@ public class RequestCreator {
             request = createRequestWithPerson(command);
         } else if (AvailableCommands.COMMANDS_WITH_PERSON_ID_ARGS.contains(name)) {
             request = createRequestWithPersonID(command);
-        }else if (AvailableCommands.SCRIPT_ARGUMENT_COMMAND.contains(name)) {
-            request = createRequestWithPersonID(command);
         } else {
             throw new NullPointerException("There is no such command, type HELP to get list on commands");
         }
@@ -43,7 +41,7 @@ public class RequestCreator {
     private Request createRequestWithoutArgs(CommandToSend command) {
         try {
             CommandValidators.validateAmountOfArgs(command.getCommandArgs(), 0);
-            return new Request(command.getCommandName());
+            return new Request(command.getCommandName(), RequestType.COMMAND);
         } catch (WrongAmountOfArgumentsException e) {
             TextWriter.printErr(e.getMessage());
             return null;
@@ -57,7 +55,7 @@ public class RequestCreator {
                     "ID must be greater then 0",
                     Long::parseLong,
                     command.getCommandArgs()[0]);
-            return new Request(command.getCommandName(), id);
+            return new Request(command.getCommandName(), id, RequestType.COMMAND);
         } catch (WrongAmountOfArgumentsException | WrongArgException e) {
             TextWriter.printErr(e.getMessage());
             return null;
@@ -74,7 +72,7 @@ public class RequestCreator {
                     "No such color!",
                     Color::valueOf,
                     command.getCommandArgs()[0].toUpperCase());
-            return new Request(command.getCommandName(), color);
+            return new Request(command.getCommandName(), color, RequestType.COMMAND);
         } catch (WrongAmountOfArgumentsException | WrongArgException e) {
             TextWriter.printErr(e.getMessage());
             return null;
@@ -87,7 +85,7 @@ public class RequestCreator {
     private Request createRequestWithPerson(CommandToSend command) {
         try {
             CommandValidators.validateAmountOfArgs(command.getCommandArgs(), 0);
-            return new Request(command.getCommandName(), scannerManager.askPerson());
+            return new Request(command.getCommandName(), scannerManager.askPerson(),  RequestType.COMMAND);
         } catch (WrongAmountOfArgumentsException | IncorrectInputInScriptException e) {
             TextWriter.printErr(e.getMessage());
             return null;
@@ -102,10 +100,12 @@ public class RequestCreator {
                     Long::parseLong,
                     command.getCommandArgs()[0]);
 
-            return new Request(command.getCommandName(), id, scannerManager.askPerson());
+            return new Request(command.getCommandName(), id, scannerManager.askPerson(), RequestType.COMMAND);
         } catch (WrongAmountOfArgumentsException | WrongArgException | IllegalArgumentException | IncorrectInputInScriptException e) {
             TextWriter.printErr(e.getMessage());
             return null;
         }
     }
+
+
 }

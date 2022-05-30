@@ -2,6 +2,8 @@ package Rusile.server.ClientCommands;
 
 import Rusile.common.util.Request;
 import Rusile.common.util.Response;
+import Rusile.server.db.DBManager;
+import Rusile.server.util.CollectionManager;
 
 /**
  * Abstract Command class contains name and description.
@@ -11,11 +13,21 @@ public abstract class AbstractCommand {
     private final String name;
     private final String description;
     private final int amountOfArgs;
+    protected CollectionManager collectionManager;
+    protected DBManager dbManager;
 
     public AbstractCommand(String name, String description, int amountOfArgs) {
         this.name = name;
         this.description = description;
         this.amountOfArgs = amountOfArgs;
+    }
+
+    public AbstractCommand(String name, String description, int amountOfArgs, CollectionManager collectionManager, DBManager dbManager) {
+        this.name = name;
+        this.description = description;
+        this.amountOfArgs = amountOfArgs;
+        this.collectionManager = collectionManager;
+        this.dbManager = dbManager;
     }
 
     /**
@@ -43,12 +55,21 @@ public abstract class AbstractCommand {
     }
 
 
+    public CollectionManager getCollectionManager() {
+        return collectionManager;
+    }
+
+    public DBManager getDbManager() {
+        return dbManager;
+    }
+
+
     @Override
     public String toString() {
         return name + ": " + description;
     }
 
-    ;
+
 
     @Override
     public int hashCode() {

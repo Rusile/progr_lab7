@@ -5,8 +5,6 @@ import Rusile.common.util.Request;
 import Rusile.common.util.Response;
 import Rusile.server.util.CollectionManager;
 
-import java.time.LocalDateTime;
-
 /**
  * 'info' command. Prints information about the collection.
  */

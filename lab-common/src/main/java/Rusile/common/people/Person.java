@@ -9,7 +9,7 @@ import java.util.Objects;
 /**
  * Person's data class
  */
-public class Person implements Comparable<Person>, Serializable{
+public class Person implements Comparable<Person>, Serializable {
     @NotNull
     @Positive(message = "ID должен быть больше нуля!")
     private Long id; //Поле не может быть null, Значение поля должно быть больше 0, Значение этого поля должно быть уникальным, Значение этого поля должно генерироваться автоматически
@@ -150,7 +150,7 @@ public class Person implements Comparable<Person>, Serializable{
         return "Person \"" + name + "\":" +
                 "\n id=" + id +
                 "\n coordinates=" + coordinates +
-                "\n creationDate=" + creationDate +
+                "\n creationDate=" + creationDate.toLocalDate() +
                 "\n height=" + height +
                 "\n eyeColor=" + eyeColor +
                 "\n hairColor=" + hairColor +

@@ -90,7 +90,6 @@ public class ScannerManager {
         String name;
         while (true) {
             try {
-
                 System.out.println(inputTitle);
                 System.out.print(INPUT_INFO);
                 name = userScanner.nextLine().trim();
