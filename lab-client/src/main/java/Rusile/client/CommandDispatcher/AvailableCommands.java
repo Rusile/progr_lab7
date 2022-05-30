@@ -17,7 +17,6 @@ public class AvailableCommands {
                 "help",
                 "show",
                 "info",
-                "exit",
                 "remove_head",
                 "min_by_studio",
                 "clear",

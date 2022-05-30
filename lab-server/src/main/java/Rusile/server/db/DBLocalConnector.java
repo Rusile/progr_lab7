@@ -16,8 +16,8 @@ import java.util.Arrays;
 public class DBLocalConnector implements DBConnectable {
 
     private final String dbUrl = "jdbc:postgresql://pg:5432/studs";
-    private final String user = "s335091";
-    private final String pass = "cik999";
+    private final String user =  System.getenv("SV_LOGIN");
+    private final String pass =  System.getenv("SV_PASS");
 
     public DBLocalConnector() {
         try {

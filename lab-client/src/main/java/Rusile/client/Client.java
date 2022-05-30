@@ -53,6 +53,7 @@ public final class Client {
                 inputAddress();
             } else {
                 Thread.sleep(8 * 1000);
+                clientChannel = SocketChannel.open(new InetSocketAddress(HOST, PORT));
             }
             TextWriter.printSuccessfulMessage("Connected!");
             clientChannel.configureBlocking(false);

@@ -9,6 +9,7 @@ import Rusile.common.people.Person;
 import Rusile.server.ClientCommands.*;
 import Rusile.server.db.DBLocalConnector;
 import Rusile.server.db.DBManager;
+import Rusile.server.db.DBSSHConnector;
 import Rusile.server.db.UsersManager;
 import Rusile.server.util.CollectionManager;
 import Rusile.server.util.CommandManager;
@@ -21,8 +22,8 @@ public class ServerConfig {
     public static final Scanner scanner = new Scanner(System.in);
     public static CollectionManager collectionManager = new CollectionManager();
     public static int PORT = 45846;
-    //public static DBSSHConnector dbsshConnector = new DBSSHConnector();
-    //public static DBManager dbManager = new DBManager(dbsshConnector);
+//    public static DBSSHConnector dbsshConnector = new DBSSHConnector();
+//    public static DBManager dbManager = new DBManager(dbsshConnector);
     public static DBManager dbManager = new DBManager(new DBLocalConnector());
     public static UsersManager usersManager = new UsersManager(dbManager);
 
@@ -44,7 +45,7 @@ public class ServerConfig {
             new RemoveByIdCommand(collectionManager, dbManager),
             new ClearCommand(collectionManager, dbManager),
             null,
-            new ExitCommand(),
+            null,
             new ExecuteScriptCommand(collectionManager),
             new AddIfMinCommand(collectionManager, dbManager),
             new RemoveHeadCommand(collectionManager, dbManager),

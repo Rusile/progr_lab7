@@ -32,7 +32,7 @@ public class RemoveHeadCommand extends AbstractCommand {
                 else {
                     Long headPersonId = collectionManager.getCollection().getFirst().getId();
                     if (dbManager.checkPersonExistence(headPersonId)) {
-                        if (dbManager.removeById(request.getNumericArgument(), request.getLogin())) {
+                        if (dbManager.removeById(headPersonId, request.getLogin())) {
                             collectionManager.removeById(request.getNumericArgument());
                             return new Response(TextWriter.getGreenText("This user has been deleted: "),
                                     collectionManager.removeHead());

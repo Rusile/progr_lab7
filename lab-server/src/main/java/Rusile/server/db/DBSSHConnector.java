@@ -34,14 +34,10 @@ public class DBSSHConnector implements DBConnectable {
 
     public DBSSHConnector() {
         try {
-            this.svLogin = "s335091";
-            this.svPass = "cik999";
-            this.svAddr = "se.ifmo.ru";
-//            this.svLogin = System.getenv("SV_LOGIN");
-//            this.svPass = System.getenv("SV_PASS");
-//            this.svAddr = System.getenv("SV_ADDR");
-//            this.forwardingPort = Integer.parseInt(System.getenv("FORWARDING_PORT"));
-            forwardingPort = 5381;
+            this.svLogin = System.getenv("SV_LOGIN");
+            this.svPass = System.getenv("SV_PASS");
+            this.svAddr = System.getenv("SV_ADDR");
+            this.forwardingPort = Integer.parseInt(System.getenv("FORWARDING_PORT"));
             connectSSH();
             Class.forName("org.postgresql.Driver");
             initializeDB();

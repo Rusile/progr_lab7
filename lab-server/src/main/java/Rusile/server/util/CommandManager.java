@@ -25,8 +25,7 @@ public class CommandManager {
         AVAILABLE_COMMANDS.put(updateByIdCommand.getName(), updateByIdCommand);
         AVAILABLE_COMMANDS.put(removeByIdCommand.getName(), removeByIdCommand);
         AVAILABLE_COMMANDS.put(clearCommand.getName(), clearCommand);
-        AVAILABLE_COMMANDS.put(exitCommand.getName(), exitCommand);
-        AVAILABLE_COMMANDS.put(exitCommand.getName(), exitCommand);
+        //AVAILABLE_COMMANDS.put(exitCommand.getName(), exitCommand);
         AVAILABLE_COMMANDS.put(executeScriptCommand.getName(), executeScriptCommand);
         AVAILABLE_COMMANDS.put(addIfMinCommand.getName(), addIfMinCommand);
         AVAILABLE_COMMANDS.put(removeHeadCommand.getName(), removeHeadCommand);
@@ -36,19 +35,6 @@ public class CommandManager {
         AVAILABLE_COMMANDS.put(printDescendingCommand.getName(), printDescendingCommand);
     }
 
-    /**
-     * executes commands
-     * @param request user's input
-     */
-    public void executeCommand(Request request) {
-        String commandName = request.getCommandName();
-        if (AVAILABLE_COMMANDS.containsKey(commandName)) {
-            AbstractCommand executingCommand = AVAILABLE_COMMANDS.get(commandName);
-            executingCommand.execute(request);
-        } else {
-            TextWriter.printErr("Command '" + commandName + "' not found. Enter 'help' for getting available commands.");
-        }
-    }
     public AbstractCommand initCommand(Request request) {
         String commandName = request.getCommandName();
         return AVAILABLE_COMMANDS.get(commandName);
